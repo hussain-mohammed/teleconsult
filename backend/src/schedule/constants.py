@@ -1,0 +1,12 @@
+class LocalConstants:
+    INCOMPLETED = "Incompleted"
+    ONGOING = "Ongoing"
+    DOCTOR_CANCEL_REQUEST = "DoctorCancellationRequested"
+    PATIENT_CANCEL_REQUEST = "PatientCancellationRequested"
+    CANCELLED = "Cancelled"
+    CALL_STATUS = "call_status"
+    STATUS_GSI = "apts_status"
+    START_TIME = "start_time"
+    END_TIME = "end_time"
+    APT_PROGRESS_MSG = "Appointment is in progress, cannot update the status."
+    SCHEDULER_COMPLETED_MSG = "Scheduler has be completed."

@@ -1,0 +1,70 @@
+service:
+  name: lq-api-documents${self:custom.${self:provider.stage}.branch}
+
+frameworkVersion: ">=1.0.0 <2.0.0"
+
+custom: ${file(../../../serverless-custom.yml)}
+
+package:
+  individually: true
+  exclude:
+    - testapp/**
+    - node_modules/**
+    - request_validators/**
+
+provider:
+  name: aws
+  tracing: true
+  runtime: python3.8
+  memorySize: 128
+  timeout: 10
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  apiGateway:
+    restApiId:
+      'Fn::ImportValue': ${self:custom.${self:provider.stage}.Stack}-restApiId-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+    restApiRootResourceId:
+      'Fn::ImportValue': ${self:custom.${self:provider.stage}.Stack}-rootResourceId-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+  CogUserPoolArn:
+    'Fn::ImportValue':  ${self:custom.${self:provider.stage}.Stack}-userpoolarn-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+  logRetentionInDays: 14
+  environment:
+    REGION: ${self:provider.region}
+    LOG_LEVEL: ${self:custom.${self:provider.stage}.LogLevel}
+
+functions:
+  documents:
+    handler: wsgi_handler.handler
+    package: {}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - s3:ListBucket
+          - s3:GetObject
+          - s3:PutObject
+          - s3:ListBucketVersions
+        Resource:
+          - arn:aws:s3:::${self:custom.DataBucketName}/*
+    environment:
+      DATA_BUCKET: ${self:custom.DataBucketName}
+      UPLOAD_EXPIRATION: 900
+      DOWNLOAD_EXPIRATION: 900
+    layers:
+      - ${cf:python-utils-${self:provider.stage}.PythonUtilsLambdaLayerQualifiedArn}
+    events:
+      - http:
+          path: /documents/urls
+          method: post
+          cors: true
+          authorizer: aws_iam
+          request:
+            schema:
+              application/json: ${file(request_validators/presigned_post_request.json)}
+      - http:
+          path: /documents/urls
+          method: get
+          cors: true
+          authorizer: aws_iam
+plugins:
+  - serverless-python-requirements
+  - serverless-wsgi

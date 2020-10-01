@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "search user request validator",
+  "description": "Search user by either phone number.",
+  "properties": {
+    "phone_number": {
+      "type": "string",
+      "title": "Phone number of the user"
+    }
+  },
+  "required": [
+    "phone_number"
+  ]
+}

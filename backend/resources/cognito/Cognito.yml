@@ -1,0 +1,87 @@
+Resources:
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    DeletionPolicy: ${self:custom.${self:provider.stage}.Deletion_Policy}
+    Properties:
+      UserPoolName: ${self:custom.userPoolName}
+      UsernameAttributes:
+        - email
+        - phone_number
+      AutoVerifiedAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: False
+      Schema:
+        - Name: name
+          AttributeDataType: String
+          Mutable: True
+          Required: True
+        - Name: email
+          AttributeDataType: String
+          Mutable: True
+          Required: True
+        - Name: phone_number
+          AttributeDataType: String
+          Mutable: True
+          Required: True
+        - Name: role
+          AttributeDataType: String
+          Mutable: False
+        - Name: specialities
+          AttributeDataType: String
+          Mutable: True
+        - Name: subspecialities
+          AttributeDataType: String
+          Mutable: True
+        - Name: education
+          AttributeDataType: String
+          Mutable: True
+        - Name: experience
+          AttributeDataType: String
+          Mutable: True
+        - Name: NPI
+          AttributeDataType: Number
+          Mutable: True
+        - Name: DEA
+          AttributeDataType: String
+          Mutable: True
+        - Name: is_cvo_verified
+          AttributeDataType: String
+          Mutable: True
+      EmailConfiguration:
+        EmailSendingAccount: DEVELOPER
+        SourceArn: arn:aws:ses:#{AWS::Region}:#{AWS::AccountId}:identity/${self:custom.${self:provider.stage}.Email}
+
+
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: ${self:service}_${self:provider.stage}${self:custom.${self:provider.stage}.branch}_user_pool_client
+      UserPoolId:
+        Ref: CognitoUserPool
+      AllowedOAuthFlowsUserPoolClient: True
+      SupportedIdentityProviders:
+        - COGNITO
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthScopes:
+        - phone
+        - email
+        - openid
+        - profile
+        - aws.cognito.signin.user.admin
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+      CallbackURLs:
+        - http://localhost
+        - !Join ['', ['https://', !Ref ApiGatewayRestApi, '.execute-api.', !Ref AWS::Region, '.amazonaws.com/', '${self:provider.stage}']]
+
+  CognitoUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: ${self:service}-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+      UserPoolId:
+        Ref: CognitoUserPool

@@ -1,0 +1,121 @@
+service:
+  name: lq-api-users${self:custom.${self:provider.stage}.branch}
+
+frameworkVersion: ">=1.0.0 <2.0.0"
+
+custom: ${file(../../../serverless-custom.yml)}
+
+package:
+  individually: true
+  exclude:
+    - node_modules/**
+
+provider:
+  name: aws
+  runtime: python3.8
+  memorySize: 128
+  timeout: 10
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  apiGateway:
+    restApiId:
+      'Fn::ImportValue': ${self:custom.${self:provider.stage}.Stack}-restApiId-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+    restApiRootResourceId:
+      'Fn::ImportValue': ${self:custom.${self:provider.stage}.Stack}-rootResourceId-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+  CogUserPoolArn:
+    'Fn::ImportValue':  ${self:custom.${self:provider.stage}.Stack}-userpoolarn-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+  logRetentionInDays: 14
+  environment:
+    REGION: ${self:provider.region}
+    LOG_LEVEL: ${self:custom.${self:provider.stage}.LogLevel}
+
+functions:
+  Users:
+    handler: wsgi_handler.handler
+    package: {}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:Query
+          - dynamodb:DeleteItem
+        Resource:
+          - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.userTableName}
+          - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.userTableName}/index/*
+      - Effect: Allow
+        Action:
+          - 'cognito-sync:*'
+          - 'cognito-identity:*'
+          - 'cognito-idp:*'
+        Resource: ${self:provider.CogUserPoolArn}
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:Query
+        Resource:
+          - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.appointmentTableName}
+          - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.appointmentTableName}/index/*
+    environment:
+      USERS_TABLE: ${self:custom.userTableName}
+      APPOINTMENTS_TABLE: ${self:custom.appointmentTableName}
+      USER_POOL_ID:
+        'Fn::ImportValue': ${self:custom.${self:provider.stage}.Stack}-userpoolid-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+    layers:
+      - ${cf:python-utils-${self:provider.stage}.PythonUtilsLambdaLayerQualifiedArn}
+    events:
+      - http:
+          path: /users/{user_id}
+          method: get
+          cors: true
+          authorizer: aws_iam
+      - http:
+          path: /users/{user_id}
+          method: put
+          cors: true
+          authorizer: aws_iam
+          request:
+            schema:
+              application/json: ${file(request_validators/update_user_validator.json)}
+      - http:
+          path: /users
+          method: post
+          cors: true
+          authorizer: aws_iam
+          request:
+            schema:
+              application/json: ${file(request_validators/create_user_validator.json)}
+      - http:
+          path: /users/search
+          method: post
+          cors: true
+          authorizer: aws_iam
+          request:
+            schema:
+              application/json: ${file(request_validators/user_search_validator.json)}
+      - http:
+          path: /users/{user_id}/availabledates
+          method: get
+          cors: true
+          authorizer: aws_iam
+      - http:
+          path: /users/{user_id}/availableslots
+          method: get
+          cors: true
+          authorizer: aws_iam
+      - http:
+          path: "/users/{user_id}/appointments"
+          method: get
+          cors: true
+          authorizer: aws_iam
+      - http:
+          path: "/users/{user_id}/appointments/{date}"
+          method: get
+          cors: true
+          authorizer: aws_iam
+
+plugins:
+  - serverless-python-requirements
+  - serverless-wsgi
+

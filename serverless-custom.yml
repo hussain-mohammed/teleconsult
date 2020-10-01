@@ -1,0 +1,50 @@
+dev:
+  Stack: Telemed
+  LogLevel: debug
+  branch: ''
+  UsersTableRCU: 1
+  UsersTableWCU: 1
+  PracticesTableRCU: 1
+  PracticesTableWCU: 1
+  AppointmentsTableRCU: 1
+  AppointmentsTableWCU: 1
+  Deletion_Policy: Delete
+
+# Offline Plugins config
+dynamodb:
+  stages:
+    - dev
+  start:
+    port: ${env:DYNAMODB_PORT, 8000}
+    host: ${env:DYNAMODB_HOST, localhost}
+    migrate: true
+    sharedDb: true
+    noStart: ${env:DYNAMODB_NOSTART, false}
+s3:
+  address: 0.0.0.0
+  host: 0.0.0.0
+  port: 8001
+  directory: .s3-local
+  allowMismatchedSignatures: true
+serverless-offline:
+  host: 0.0.0.0
+
+# Flask/Python plugins
+wsgi:
+  app: app.app
+  packRequirements: false
+pythonRequirements:
+  dockerizePip: non-linux
+  useStaticCache: false
+
+# Cognito
+userPoolName: ${self:service}_${self:provider.stage}${self:custom.${self:provider.stage}.branch}_user_pool
+
+#DynamoDB Table Names
+userTableName: ${self:custom.${self:provider.stage}.Stack}_Users_${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+
+#Layer Names
+pythonUtilsLayerName: ${self:service}_${self:provider.stage}_utils
+
+#S3 Bucket Names
+DataBucketName: lq-backend${self:custom.${self:provider.stage}.branch}-${self:provider.stage}-databucket

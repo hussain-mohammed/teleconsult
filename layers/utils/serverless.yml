@@ -1,0 +1,22 @@
+service:
+  name: python-utils
+
+custom: ${file(../../serverless-custom.yml)}
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  deploymentBucket:
+    name: ${self:custom.DeploymentBucketName}
+    maxPreviousDeploymentArtifacts: 10
+    deploymentPrefix: serverless
+    versionFunctions: false
+    blockPublicAccess: true
+
+layers:
+  pythonUtils:
+    name: ${self:custom.pythonUtilsLayerName}
+    path: .package
+    compatibleRuntimes:
+      - python3.8
+    retain: true

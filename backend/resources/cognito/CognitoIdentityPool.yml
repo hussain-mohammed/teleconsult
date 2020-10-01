@@ -1,0 +1,10 @@
+Resources:
+  # The federated Identity
+  CognitoIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: ${self:service}_${self:provider.stage}${self:custom.${self:provider.stage}.branch}_identity_pool
+      AllowUnauthenticatedIdentities: False
+      CognitoIdentityProviders:
+        - ClientId: !Ref CognitoUserPoolClient
+          ProviderName: !GetAtt CognitoUserPool.ProviderName

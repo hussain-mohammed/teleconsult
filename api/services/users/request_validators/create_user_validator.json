@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "title": "Create branch admin request validator",
+    "properties": {
+        "name": {
+            "type": "string",
+            "title": "Name"
+        },
+        "role": {
+            "type": "string",
+            "title": "Role"
+        },
+        "phone_number": {
+            "type": "string",
+            "title": "Phone Number"
+        },
+        "email": {
+            "type": "string",
+            "title": "Email"
+        },
+        "message_action": {
+            "type": "boolean",
+            "title": "Email"
+        }
+    },
+    "required": [
+        "phone_number",
+        "name",
+        "email",
+        "role"
+    ]
+}

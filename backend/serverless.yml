@@ -1,0 +1,87 @@
+service:
+  name: lq-backend${self:custom.${self:provider.stage}.branch}
+
+frameworkVersion: ">=1.0.0 <2.0.0"
+
+custom: ${file(../serverless-custom.yml)}
+
+provider:
+  name: aws
+  runtime: python3.8
+  memorySize: 128
+  timeout: 10
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  logRetentionInDays: 14
+  environment:
+    LOG_LEVEL: ${self:custom.${self:provider.stage}.LogLevel}
+    COGNITO_USERPOOL_NAME: ${self:custom.userPoolName}
+
+package:
+  individually: true
+  exclude:
+    - node_modules/**
+
+resources:
+  # Cognito User Pool Setup
+  - ${file(resources/cognito/Cognito.yml)}
+
+  # Cognito Identity Pool Setup
+  - ${file(resources/cognito/CognitoIdentityPool.yml)}
+
+  # API GW defined so you can export the restApiId, as well as name it.
+  - ${file(resources/apigateway/RestApi.yml)}
+
+  # DynamoDB tables
+  - ${file(resources/dynamodb/UsersTable.yml)}
+
+  # S3 buckets
+  - ${file(resources/s3/DocumentsBucket.yml)}
+
+  # Here we are exporting the RestApiID and the RootResourceId to use in other API Endpoints.
+  # This is needed to share the API Gateway between services, instead of creating new ones per service.
+  # See https://serverless.com/framework/docs/providers/aws/events/apigateway#share-api-gateway-and-api-resources
+  - Outputs:
+      ApiGWRestApiId:
+        Value:
+          Ref: ApiGatewayRestApi
+        Export:
+          Name: ${self:custom.${self:provider.stage}.Stack}-restApiId-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+      CogUserPool:
+        Value: ${self:custom.userPoolName}
+        Export:
+          Name: ${self:custom.${self:provider.stage}.Stack}-userpool-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+      CogUserPoolArn:
+        Value:
+          Fn::GetAtt:
+            - CognitoUserPool
+            - Arn
+        Export:
+          Name: ${self:custom.${self:provider.stage}.Stack}-userpoolarn-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+      CogUserPoolId:
+        Value:
+          Ref: CognitoUserPool
+        Export:
+          Name: ${self:custom.${self:provider.stage}.Stack}-userpoolid-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+      CogAppClientId:
+        Value:
+          Ref: CognitoUserPoolClient
+        Export:
+          Name: ${self:custom.${self:provider.stage}.Stack}-appclientid-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+      CogIdentityPoolId:
+        Value:
+          Ref: CognitoIdentityPool
+        Export:
+          Name: ${self:custom.${self:provider.stage}.Stack}-cogidentitypooid-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+
+      ApiGWRootResourceId:
+        Value:
+          Fn::GetAtt:
+            - ApiGatewayRestApi
+            - RootResourceId
+        Export:
+          Name: ${self:custom.${self:provider.stage}.Stack}-rootResourceId-${self:provider.stage}${self:custom.${self:provider.stage}.branch}
+
+plugins:
+  - serverless-python-requirements
+  - serverless-wsgi

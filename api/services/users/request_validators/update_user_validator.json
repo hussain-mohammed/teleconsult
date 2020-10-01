@@ -1,0 +1,114 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "definitions": {
+        "address_obj": {
+            "type": "object",
+            "title": "Address",
+            "properties": {
+                "door": {
+                    "type": "string"
+                },
+                "street": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "zipcode": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "door",
+                "street",
+                "city",
+                "zipcode"
+            ]
+        }
+    },
+    "type": "object",
+    "title": "update doctor request validator",
+    "properties": {
+        "education": {
+            "type": "string",
+            "description": "Education"
+        },
+        "experience": {
+            "type": "number",
+            "description": "Experience"
+        },
+        "operational_days": {
+            "type": "array",
+            "description": "Operational Days",
+            "items": {
+                "type": "string"
+            }
+        },
+        "operational_hours": {
+            "type": "array",
+            "description": "Operational Hours",
+            "items": {
+                "type": "string"
+            }
+        },
+        "consultation_slot": {
+            "type": "number",
+            "description": "Consultation Slot"
+        },
+        "DEA": {
+            "type": "string",
+            "description": "DEA"
+        },
+        "NPI": {
+            "type": "string",
+            "description": "NPI"
+        },
+        "email": {
+            "type": "string",
+            "description": "Email"
+        },
+        "is_cvo_verified": {
+            "type": "boolean",
+            "description": "Is CVO verified"
+        },
+        "name": {
+            "type": "string",
+            "description": "Name"
+        },
+        "phone_number": {
+            "type": "string",
+            "description": "Phone Number"
+        },
+        "specialities": {
+            "type": "string",
+            "description": "Specialities"
+        },
+        "role": {
+            "type": "string",
+            "description": "Role"
+        },
+        "pk": {
+            "type": "string",
+            "description": "Partition key"
+        },
+        "address": {
+            "$ref": "#/definitions/address_obj",
+            "description": "Address"
+        },
+        "user_tz": {
+            "type": "string",
+            "description": "User time zone"
+        }
+    },
+    "required": [
+        "email",
+        "phone_number",
+        "user_tz",
+        "name",
+        "role",
+        "pk"
+    ]
+}

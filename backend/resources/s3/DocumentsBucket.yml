@@ -1,0 +1,15 @@
+Resources:
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Condition: ShouldCreateResources
+    DeletionPolicy: ${self:custom.${self:provider.stage}.Deletion_Policy}
+    Properties:
+      BucketName: ${self:custom.DataBucketName}
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ['*']
+            AllowedMethods: [GET, PUT, POST]
+            AllowedOrigins: ['*']
+            Id: CORSRuleId1
+            MaxAge: '3600'
+

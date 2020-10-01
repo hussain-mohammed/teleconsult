@@ -1,0 +1,22 @@
+{
+  "definitions": {},
+  "$schema" : "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "Presigned Post Url Request Model",
+  "required": ["user_id", "role", "fileext"],
+  "properties": {
+      "user_id": {
+          "type": "string",
+          "title": "User ID"
+      },
+      "role": {
+          "type": "string",
+          "title": "Role"
+      },
+      "fileext": {
+          "type": "string",
+          "title": "File Extension",
+          "maxLength": 4
+      }
+  }
+}

@@ -1,0 +1,69 @@
+Resources:
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Condition: ShouldCreateResources
+    DeletionPolicy: ${self:custom.${self:provider.stage}.Deletion_Policy}
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "pk"
+          AttributeType: "S"
+        -
+          AttributeName: "sk"
+          AttributeType: "S"
+        -
+          AttributeName: "specialities"
+          AttributeType: "S"
+        -
+          AttributeName: "subspecialities"
+          AttributeType: "S"
+        -
+          AttributeName: "role"
+          AttributeType: "S"
+
+      BillingMode: "PROVISIONED"
+      # For items below, a simple primary key would be represented by one KeySchemaElement(for the partition key).
+      # A composite primary key would require one KeySchemaElement for the partition key(keyType=HASH),
+      # and another KeySchemaElement for the sort key(keyType=RANGE).
+      KeySchema:
+        -
+          AttributeName: "pk"
+          KeyType: "HASH"
+        -
+          AttributeName: "sk"
+          KeyType: "RANGE"
+
+      GlobalSecondaryIndexes:
+        -
+          IndexName: "gsi_doctors_specialities"
+          KeySchema:
+            -
+              AttributeName: "specialities"
+              KeyType: "HASH"
+            -
+              AttributeName: "subspecialities"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: "ALL"
+          ProvisionedThroughput:
+            ReadCapacityUnits: ${self:custom.${self:provider.stage}.UsersTableRCU}
+            WriteCapacityUnits: ${self:custom.${self:provider.stage}.UsersTableWCU}
+        -
+          IndexName: "gsi_roles"
+          KeySchema:
+            -
+              AttributeName: "role"
+              KeyType: "HASH"
+            -
+              AttributeName: "pk"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: "ALL"
+          ProvisionedThroughput:
+            ReadCapacityUnits: ${self:custom.${self:provider.stage}.UsersTableRCU}
+            WriteCapacityUnits: ${self:custom.${self:provider.stage}.UsersTableWCU}
+
+      ProvisionedThroughput:
+        ReadCapacityUnits: ${self:custom.${self:provider.stage}.UsersTableRCU}
+        WriteCapacityUnits: ${self:custom.${self:provider.stage}.UsersTableWCU}
+      TableName: ${self:custom.userTableName}
